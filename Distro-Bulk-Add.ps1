@@ -1,5 +1,5 @@
 #input email ID of created distro email
-$GroupEmailID = "legalcenter@aspirion.com"
+$GroupEmailID = "email@email.com"
 
 #csv file with users emails
 $CSVFile = "C:\Temp\dlusers.csv"
