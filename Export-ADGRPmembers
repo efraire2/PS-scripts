@@ -1,0 +1,13 @@
+# Specify the name of the security group
+$groupName = "YourSecurityGroupName"
+
+# Specify the path for the CSV file
+$csvPath = "C:\Path\To\Export\members.csv"
+
+# Get all members of the security group
+$members = Get-ADGroupMember -Identity $groupName
+
+# Export members to a CSV file
+$members | Select-Object SamAccountName, Name, DistinguishedName | Export-Csv -Path $csvPath -NoTypeInformation
+
+Write-Host "Members of $groupName exported to $csvPath"

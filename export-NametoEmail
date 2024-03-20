@@ -1,0 +1,44 @@
+#script used to get the email of multiple users from exchange if you only have the full name
+
+# CSV file with users' full names
+$CSVFile = "C:\Path\To\Your\File.csv"
+
+# Output CSV file path
+$OutputCSV = "C:\Path\To\Output\exported_users.csv"
+
+# Connect to Exchange Online
+Connect-ExchangeOnline -ShowBanner:$False
+
+# Import users' full names from CSV
+$Users = Import-CSV $CSVFile -Header "FullName"
+
+# Initialize an array to store user details
+$UserDetails = @()
+
+# Iterate through each user
+foreach ($User in $Users) {
+    # Retrieve user details using the full name
+    $UserInfo = Get-User -Filter "Name -eq '$($User.FullName)'" -ErrorAction SilentlyContinue | Select-Object DisplayName, UserPrincipalName
+
+    # Check if the user was found
+    if ($UserInfo) {
+        $UserDetails += [PSCustomObject]@{
+            'Name'         = $UserInfo.DisplayName
+            'Email Address' = $UserInfo.UserPrincipalName
+            'User Found'   = $true
+        }
+        Write-Host "User details exported: $($UserInfo.DisplayName) - $($UserInfo.UserPrincipalName)"
+    } else {
+        $UserDetails += [PSCustomObject]@{
+            'Name'         = $User.FullName
+            'Email Address' = $null
+            'User Found'   = $false
+        }
+        Write-Host -ForegroundColor Yellow "User not found: $($User.FullName)"
+    }
+}
+
+# Export user details to a new CSV file
+$UserDetails | Export-Csv -Path $OutputCSV -NoTypeInformation
+
+Write-Host "User details exported to $OutputCSV"
