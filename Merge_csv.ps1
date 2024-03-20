@@ -1,8 +1,8 @@
 # Path to the folder containing the CSV files
-$folderPath = "C:\temp\ASPI\csv\test"
+$folderPath = "pathTofolder.csv";
 
 # Path to the output merged CSV file
-$outputCSV = "C:\temp\ASPI\csv\merged_file.csv"
+$outputCSV = "outputpath\merged_file.csv"
 
 # Get all CSV files in the folder
 $csvFiles = Get-ChildItem -Path $folderPath -Filter *.csv | ForEach-Object { $_.FullName }

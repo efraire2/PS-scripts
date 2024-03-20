@@ -4,7 +4,7 @@
 $csvFilePath = "C:\Temp\csv\ADUsersExportdel.csv"
 
 # Specify the subdomain DC server name
-$subdomainDC = "del.aspirion.com"
+$subdomainDC = "sub.domain.com"
 
 # Define a function to extract the Organizational Unit (OU) from DistinguishedName
 function Get-OUPath {
