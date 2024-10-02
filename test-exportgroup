@@ -1,0 +1,86 @@
+# Specify the subdomains (modify as needed)
+$subdomains = @("col.aspirion.com", "del.aspirion.com", "lee.aspirion.com", "way.aspirion.com")
+
+# Initialize an empty array to store all member details
+$allMemberDetails = @()
+
+# Iterate through each subdomain
+foreach ($subdomain in $subdomains) {
+    # Specify the full DN of the Active Directory group (including subdomain)
+    $groupDN = "CN=Domain Admins,CN=Users,OU=$subdomain,DC=aspirion,DC=com"
+
+    # Get the group members
+    $groupMembers = Get-ADGroupMember -Identity $groupDN
+
+    # Initialize an array to store member details for this subdomain
+    $memberDetails = @()
+
+    # Iterate through each member
+    foreach ($member in $groupMembers) {
+        # Check if the member is a user (not another group)
+        if ($member.objectClass -eq "user") {
+            # Get additional details for the user
+            $user = Get-ADUser -Identity $member -Properties DisplayName, SamAccountName, EmailAddress
+
+            # Create a custom object with relevant properties
+            $memberObject = New-Object PSObject -Property @{
+                Name = $user.DisplayName
+                Username = $user.SamAccountName
+                Email = $user.EmailAddress
+            }
+
+            # Add the member object to the array
+            $memberDetails += $memberObject
+        }
+    }
+
+    # Add the member details for this subdomain to the overall array
+    $allMemberDetails += $memberDetails
+}
+
+# Export all member details to a CSV file
+$allMemberDetails | Export-Csv -Path "C:\Temp\AllGroupMembers.csv" -NoTypeInformation
+
+Write-Host "All group members exported to AllGroupMembers.csv"
+
+
+
+
+
+$GM = Get-ADGroupMember -Server $dom -Identity $G.name -Recursive | Get-ADUser -Properties *
+
+
+$Domains = (Get-ADForest).Domains.ForEach{(Get-ADDomain $_).PDCEmulator}
+
+$Users = @()
+$Groups = @()
+$list = Get-Content C:\vsc\ADGroups.txt
+ForEach ($dom in $Domains) {
+    Foreach ($o in $list) {
+        $ObjectClass = (Get-ADObject -server $dom -Filter {SamAccountName -eq $o}).ObjectClass
+        If ($ObjectClass -eq "User") {
+            $U =  Get-ADUser -Properties * -Identity $o -Server $dom
+            $User = "" | Select FullUserName, LoginID, Description
+            $User.FullUserName = $U.DisplayName
+            $User.LoginID = $U.SamAccountName
+            $User.Description = $U.description
+            $Users += $User
+        } Else {
+            If ($ObjectClass -eq "Group") {
+                $G = Get-ADGroup -Properties * -Identity $o -Server $dom
+                $GM = Get-ADGroupMember -Server $dom -Identity $G.name -Recursive | Get-ADUser  -Properties *
+                Foreach ($gmember in $GM) {
+                    $Group = "" | Select GroupName, GroupDescription, GroupMemberName, GroupMemberLoginID, GroupMemberDesc
+                    $Group.GroupName = $G.Name
+                    $Group.GroupDescription = $G.Description
+                    $Group.GroupMemberName = $gmember.Name
+                    $Group.GroupMemberLoginID = $gmember.SamAccountName
+                    $Group.GroupMemberDesc = $gmember.Description
+                    $Groups += $Group
+                }
+            }
+        }
+    }
+}
+$Users | Export-Csv C:\vsc\Users.csv -NoTypeInformation
+$Groups | Export-Csv C:\vsc\Groups.csv -NoTypeInformation

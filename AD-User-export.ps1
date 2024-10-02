@@ -1,7 +1,7 @@
 #AD Export for specific info
 
 # Specify the output CSV file path
-$csvFilePath = "C:\Temp\csv\ADUsersExportdel.csv"
+$csvFilePath = "C:\Temp\csv\UsersExport.csv"
 
 # Specify the subdomain DC server name
 $subdomainDC = "sub.domain.com"
@@ -39,7 +39,7 @@ function Remove-OUandDCPaths {
 }
 
 # Get all users from Active Directory on the specified subdomain DC and select the specified properties
-$users = Get-ADUser -Server $subdomainDC -Filter * -Properties DisplayName, Enabled, DistinguishedName, SamAccountName, SID, UserPrincipalName, EmployeeID, Surname, GivenName, Company, co, Created, Title, Manager, Location, Department, PreferredLanguage  |
+$users = Get-ADUser -Server $subdomainDC -Filter * -Properties DisplayName, Enabled, DistinguishedName, SamAccountName, SID,objectGUID, UserPrincipalName, EmployeeID, Surname, GivenName, Company, streetAddress, st, postalCode, co, Created, Title, l, physicalDeliveryOfficeName, telephoneNumber, Manager, Location, Department, PreferredLanguage  |
     Select-Object @{
         Name = 'Enabled'
         Expression = { $_.Enabled }
@@ -53,34 +53,57 @@ $users = Get-ADUser -Server $subdomainDC -Filter * -Properties DisplayName, Enab
         Name = 'Display name'
         Expression = { $_.DisplayName }
     }, @{
-        Name = 'Employee ID'
-        Expression = { $_.employeeID }
-    }, @{
         Name = 'First Name'
         Expression = { $_.GivenName }
     }, @{
         Name = 'Last Name'
         Expression = { $_.Surname }
+    }, @{
+        Name = 'Telephone Number'
+        Expression = { $_.telephoneNumber }
     },  @{
         Name = 'Job title'
         Expression = { $_.Title }
     }, @{
-        Name = 'Manager'
-        Expression = { Remove-OUandDCPaths -ManagerAttribute $_.Manager }
+        Name = 'Employee ID'
+        Expression = { $_.employeeID }
     }, @{
-        Name = 'Company'
+        Name = 'Department'
+        Expression = { $_.department }
+    }, @{
+        Name = 'Manager'
+       Expression = { Remove-OUandDCPaths -ManagerAttribute $_.Manager }
+    }, @{
+       Name = 'Company'
         Expression = { $_.Company }
     }, @{
         Name = 'Country'
         Expression = { $_.co }
+    }, @{
+        Name = 'Postal Code'
+        Expression = { $_.postalCode }
+    }, @{
+        Name = 'City'
+        Expression = { $_.l }
+    }, @{
+        Name = 'office Location'
+        Expression = { $_.physicalDeliveryOfficeName }
+    }, @{
+        Name = 'state'
+        Expression = { $_.st }
+    }, @{
+        Name = 'Street Address'
+        Expression = { $_.streetAddress }
     }, @{
         Name = 'OU path'
         Expression = { Get-OUPath -DistinguishedName $_.DistinguishedName }
     },  @{
         Name = 'SID'
         Expression = { $_.SID }
+    },  @{
+        Name = 'ObjectGUID'
+        Expression = { $_.objectGUID }
     }
-
 # Export the results to a CSV file
 $users | Export-Csv -Path $csvFilePath -NoTypeInformation
 
